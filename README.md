@@ -1,57 +1,44 @@
-# rest-vertx-client-comparison project
+# A simple application to compare the performance of Microprofile Rest client and VertX client
+Usage of jconsole to check the peak number of threads.
 
-This project uses Quarkus, the Supersonic Subatomic Java Framework.
+## Running this curl command 200 times with max 10 jobs in parallel.
+seq 1 10 | xargs -n1 -P10 curl --request GET --url http://localhost:8080/countries/rxjava/restclient	//peak 88  
+seq 1 10 | xargs -n1 -P10 curl --request GET --url http://localhost:8080/countries/rxjava/vertx			//peak 78  
 
-If you want to learn more about Quarkus, please visit its website: https://quarkus.io/ .
+seq 1 3000 | xargs -n1 -P30 curl --request GET --url http://localhost:8080/countries/rxjava/restclient	//peak 152  
+seq 1 3000 | xargs -n1 -P30 curl --request GET --url http://localhost:8080/countries/rxjava/vertx		//peak 114  
 
-## Running the application in dev mode
+seq 1 3000 | xargs -n1 -P100 curl --request GET --url http://localhost:8080/countries/rxjava/restclient	//peak 191  
+seq 1 3000 | xargs -n1 -P100 curl --request GET --url http://localhost:8080/countries/rxjava/vertx		//peak 113  
 
-You can run your application in dev mode that enables live coding using:
-```shell script
-./mvnw compile quarkus:dev
+seq 1 100000 | xargs -n1 -P1000 curl --request GET --url http://localhost:8080/countries/rxjava/restclient	//peak 190  
+seq 1 100000 | xargs -n1 -P1000 curl --request GET --url http://localhost:8080/countries/rxjava/vertx		//peak 108  
+
+seq 1 10000 | xargs -n1 -P2000 curl --request GET --url http://localhost:8080/countries/rxjava/restclient	//peak 200   
+seq 1 10000 | xargs -n1 -P2000 curl --request GET --url http://localhost:8080/countries/rxjava/vertx		//peak 112  
+
+## With blocking Microprofile Rest client
+For every request, 3 new threads are created from JVM.
+1. executor-thread-2
+2. vert.x-worker-thread-0
+3. vert.x-internal-blocking-0  
+#### Logs 
 ```
-
-## Packaging and running the application
-
-The application can be packaged using:
-```shell script
-./mvnw package
+2021-01-09 14:59:37,194 INFO  [org.acm.res.con.ExampleResource] (executor-thread-1) First log RxJava with Microprofile Rest Client !!!!  
+2021-01-09 14:59:37,769 INFO  [org.acm.res.con.ExampleResource] (executor-thread-1) Run on thread (RxJava) with Microprofile Rest Client ...
+2021-01-09 14:59:37,769 INFO  [org.acm.res.con.ExampleResource] (executor-thread-1) -----------------------
+```  
+ 		
+ 		
+## With vertx client which is non-blocking 		
+For every request, 3 new threads are created from JVM.
+1. vert.x-worker-thread-0
+2. vert.x-internal-blocking-0    
+A thread from event poll is triggered for every new call
+#### Logs
 ```
-It produces the `rest-vertx-client-comparison-1.0.0-SNAPSHOT-runner.jar` file in the `/target` directory.
-Be aware that it’s not an _über-jar_ as the dependencies are copied into the `target/lib` directory.
-
-If you want to build an _über-jar_, execute the following command:
-```shell script
-./mvnw package -Dquarkus.package.type=uber-jar
+2021-01-09 14:55:44,376 INFO  [org.acm.res.con.ExampleResource] (executor-thread-1) First log RxJava with Vertx Client !!!!
+2021-01-09 14:55:44,378 WARN  [io.qua.ver.run.VertxProducer] (executor-thread-1) `io.vertx.reactivex.core.Vertx` is deprecated  and will be removed in a future version - it is recommended to switch to `io.vertx.mutiny.core.Vertx`
+2021-01-09 14:55:44,949 INFO  [org.acm.res.con.ExampleResource] (vert.x-eventloop-thread-4) Run on thread with Vertx client...
+2021-01-09 14:55:44,949 INFO  [org.acm.res.con.ExampleResource] (vert.x-eventloop-thread-4) -----------------------
 ```
-
-The application is now runnable using `java -jar target/rest-vertx-client-comparison-1.0.0-SNAPSHOT-runner.jar`.
-
-## Creating a native executable
-
-You can create a native executable using: 
-```shell script
-./mvnw package -Pnative
-```
-
-Or, if you don't have GraalVM installed, you can run the native executable build in a container using: 
-```shell script
-./mvnw package -Pnative -Dquarkus.native.container-build=true
-```
-
-You can then execute your native executable with: `./target/rest-vertx-client-comparison-1.0.0-SNAPSHOT-runner`
-
-If you want to learn more about building native executables, please consult https://quarkus.io/guides/maven-tooling.html.
-
-# RESTEasy JAX-RS
-
-<p>A Hello World RESTEasy resource</p>
-
-Guide: https://quarkus.io/guides/rest-json
-
-# RESTEasy JSON serialisation using Jackson
-
-<p>This example demonstrate RESTEasy JSON serialisation by letting you list, add and remove quark types from a list.</p>
-<p><b>Quarked!</b></p>
-
-Guide: https://quarkus.io/guides/rest-json
