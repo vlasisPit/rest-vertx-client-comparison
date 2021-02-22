@@ -6,7 +6,8 @@ import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.jboss.logging.Logger;
 import org.test.clients.CountryRestClient;
 import org.test.clients.CountryRestMutinyClient;
-import org.test.clients.CountryVertxClient;
+import org.test.clients.MutinyCountryVertxClient;
+import org.test.clients.RxJavaCountryVertxClient;
 import org.test.model.Country;
 
 import javax.inject.Inject;
@@ -30,7 +31,10 @@ public class CountryResource {
     CountryRestMutinyClient countryRestMutinyClient;
 
     @Inject
-    CountryVertxClient countryVertxClient;
+    RxJavaCountryVertxClient rxJavaCountryVertxClient;
+
+    @Inject
+    MutinyCountryVertxClient mutinyCountryVertxClient;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -38,9 +42,8 @@ public class CountryResource {
     public Uni<List<Country>> uniRestClient() {
         LOG.info("First log Uni with Microprofile Rest Client !!!!");
 
-        return this.countryRestMutinyClient.getCountryByName("Greece")
-                .onItem().invoke(() ->  LOG.info("Run on thread (Uni) with Microprofile Rest Client ..."))
-                .onItem().invoke(() ->  LOG.info("-----------------------"));
+        return this.countryRestMutinyClient.getCountryByName("greece")
+                .onItem().invoke(countries ->  LOG.info("Run on thread (Uni) with Microprofile Rest Client ..." + countries.toString()));
     }
 
     @GET
@@ -49,9 +52,8 @@ public class CountryResource {
     public Single<List<Country>> rxjavaRestClient() {
         LOG.info("First log RxJava with Microprofile Rest Client !!!!");
 
-        return this.countryRestClient.getCountryByName("Greece")
-                .doOnEvent((countries, throwable) ->  LOG.info("Run on thread (RxJava) with Microprofile Rest Client ..."))
-                .doOnEvent((countries, throwable) ->  LOG.info("-----------------------"));
+        return this.countryRestClient.getCountryByName("greece")
+                .doOnEvent((countries, throwable) ->  LOG.info("Run on thread (RxJava) with Microprofile Rest Client ..." + countries.toString()));
     }
 
     @GET
@@ -60,8 +62,17 @@ public class CountryResource {
     public Single<List<Country>> rxjavaVertx() {
         LOG.info("First log RxJava with Vertx Client !!!!");
 
-        return this.countryVertxClient.getCountryByName("Greece")
-                .doOnEvent((countries, throwable) ->  LOG.info("Run on thread with Vertx client..."))
-                .doOnEvent((countries, throwable) ->  LOG.info("-----------------------"));
+        return this.rxJavaCountryVertxClient.getCountryByName("greece")
+                .doOnEvent((countries, throwable) ->  LOG.info("Run on thread with Vertx client..." + countries.toString()));
+    }
+
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/mutiny/vertx")
+    public Uni<List<Country>> mutinyVertx() {
+        LOG.info("First log Mutiny with Vertx Client !!!!");
+
+        return this.mutinyCountryVertxClient.getCountryByName("greece")
+                .onItem().invoke(countries ->  LOG.info("Run on thread with Vertx client..." + countries.toString()));
     }
 }

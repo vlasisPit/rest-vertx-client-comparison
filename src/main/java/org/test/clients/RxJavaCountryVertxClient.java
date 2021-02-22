@@ -16,7 +16,7 @@ import java.util.Collections;
 import java.util.List;
 
 @ApplicationScoped
-public class CountryVertxClient {
+public class RxJavaCountryVertxClient {
 
     @Inject
     Vertx vertx;
@@ -29,8 +29,10 @@ public class CountryVertxClient {
         objectMapper = new ObjectMapper();
         objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         this.client = WebClient.create(vertx,
-                new WebClientOptions().setDefaultHost("restcountries.eu")
-                        .setDefaultPort(443).setSsl(true).setTrustAll(true));
+                /*new WebClientOptions().setDefaultHost("restcountries.eu")
+                        .setDefaultPort(443).setSsl(true).setTrustAll(true));*/
+                new WebClientOptions().setDefaultHost("localhost")
+                        .setDefaultPort(3000).setSsl(false).setTrustAll(true));
     }
 
     public Single<List<Country>> getCountryByName(String name) {
