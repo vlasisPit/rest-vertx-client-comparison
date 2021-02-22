@@ -16,7 +16,6 @@ import org.test.model.Country;
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
 
